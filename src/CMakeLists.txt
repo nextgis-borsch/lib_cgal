@@ -64,6 +64,9 @@ function (collect_cgal_library LIBRARY_NAME ADDITIONAL_FILES)
     add_library(${LIBRARY_NAME} INTERFACE)
   endif()
 
+  target_link_extlibraries(${LIBRARY_NAME})
+  set(EXPORT_TARGETS ${EXPORT_TARGETS} ${LIBRARY_NAME} PARENT_SCOPE)
+
   if(CGAL_AUTO_LINK_ENABLED)
     if (NOT CGAL_HEADER_ONLY)
       set_target_properties( ${LIBRARY_NAME} PROPERTIES
@@ -105,6 +108,7 @@ function( configure_component DIR COMPONENT )
   option( WITH_${COMPONENT} "Enable CGAL component ${COMPONENT}" ${enabled_by_default})
   if ( WITH_${COMPONENT})
     add_subdirectory( ${DIR} ${COMPONENT} )
+    set(EXPORT_TARGETS ${EXPORT_TARGETS} PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -215,3 +219,4 @@ CGAL_add_if_target(CGAL_Qt5)
 
 message(STATUS "Sources for CGAL component libraries '${CGAL_CONFIGURED_LIBRARIES}' detected")
 
+set(EXPORT_TARGETS ${EXPORT_TARGETS} PARENT_SCOPE)

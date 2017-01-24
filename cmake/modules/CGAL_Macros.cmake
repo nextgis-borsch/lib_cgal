@@ -267,6 +267,8 @@ if( NOT CGAL_MACROS_FILE_INCLUDED )
 
     message (STATUS "Requested component: ${component}")
 
+    include(FindAnyProject)
+
     if(WITH_CGAL_${component})
       if(TARGET CGAL_${component})
         add_to_list( CGAL_LIBRARIES CGAL_${component} )
@@ -282,7 +284,7 @@ if( NOT CGAL_MACROS_FILE_INCLUDED )
       # Nothing to add for Core
 
       if (${component} STREQUAL "ImageIO")
-        find_package( ZLIB QUIET )
+        find_anyproject( ZLIB QUIET )
 
         if(ZLIB_FOUND)
           cache_set(CGAL_ImageIO_USE_ZLIB "ON")
@@ -318,7 +320,7 @@ if( NOT CGAL_MACROS_FILE_INCLUDED )
 
           ####message( STATUS "External library ${component} has not been preconfigured")
           if (${component} STREQUAL "ImageIO")
-            find_package( ZLIB QUIET )
+            find_anyproject( ZLIB QUIET )
 
             if(ZLIB_FOUND)
               cache_set(CGAL_ImageIO_USE_ZLIB "ON")

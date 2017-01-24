@@ -107,4 +107,6 @@ else()
 
 endif()
 
+set(EXPORT_TARGETS ${EXPORT_TARGETS} PARENT_SCOPE)
+
 message("libCGAL_Qt5 is configured")

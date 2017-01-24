@@ -38,8 +38,29 @@ if(POLICY CMP0056)
   cmake_policy(SET CMP0056 NEW)
 endif()
 
+# some init settings
+set(CMAKE_COLOR_MAKEFILE ON)
+# set path to additional CMake modules
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
+
+include(util)
+check_version(CGAL_MAJOR_VERSION CGAL_MINOR_VERSION)
+set(VERSION ${CGAL_MAJOR_VERSION}.${CGAL_MINOR_VERSION})
+report_version(${PROJECT_NAME} ${VERSION})
+
 # Use GNUInstallDirst to get canonical paths
 include(GNUInstallDirs)
+
+set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
+set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
+set(INSTALL_INC_DIR ${CMAKE_INSTALL_INCLUDEDIR} CACHE INTERNAL "Installation directory for headers" FORCE)
+set(INSTALL_DOC_DIR ${CMAKE_INSTALL_DOCDIR} CACHE INTERNAL "Share directory for data" FORCE)
+set(INSTALL_MAN_DIR ${CMAKE_INSTALL_MANDIR} CACHE INTERNAL "Share directory for mans" FORCE)
+
+set(INSTALL_INC_FULL_DIR "${CMAKE_INSTALL_PREFIX}/${INSTALL_INC_DIR}")
+
+# TODO: add gmp and mpfr libraries to borsch and remove CGAL_DISABLE_GMP ON
+set(CGAL_DISABLE_GMP ON)
 
 #--------------------------------------------------------------------------------------------------
 #
@@ -799,6 +820,8 @@ cache_get(CGAL_3RD_PARTY_INCLUDE_DIRS  )
 cache_get(CGAL_3RD_PARTY_LIBRARIES     )
 cache_get(CGAL_3RD_PARTY_LIBRARIES_DIRS) 
 
+set(EXPORT_TARGETS)
+
 add_subdirectory(src)
 
 #
@@ -1077,3 +1100,31 @@ if(NOT CGAL_BRANCH_BUILD AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/doc")
   # in a non-branch build this is the top-level CMakeLists.txt
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/doc")
 endif()
+
+
+
+set(EXPORT_NAME ${PROJECT_NAME})
+
+if (REGISTER_PACKAGE)
+    export(TARGETS ${EXPORT_TARGETS} FILE ${EXPORT_NAME}-exports.cmake)
+    set(EXPORT_PACKAGE_NAME CGAL)
+    set(EXPORT_PACKAGE_NAME_UPPER ${EXPORT_PACKAGE_NAME})
+    set(EXPORT_PACKAGE_LIB_NAME ${PROJECT_NAME})
+
+    export(PACKAGE ${EXPORT_PACKAGE_NAME})
+
+    include(CMakePackageConfigHelpers)
+    configure_package_config_file(
+        ${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_PACKAGE_NAME}Config.cmake
+        INSTALL_DESTINATION ${INSTALL_LIB_DIR}/cmake
+        PATH_VARS INSTALL_INC_DIR )
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_PACKAGE_NAME}ConfigVersion.cmake
+        VERSION ${VERSION}
+        COMPATIBILITY AnyNewerVersion )
+else()
+    export(TARGETS ${EXPORT_TARGETS} FILE ${EXPORT_NAME}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)
+endif()
+
+add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

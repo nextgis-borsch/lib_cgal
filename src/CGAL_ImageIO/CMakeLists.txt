@@ -1,6 +1,7 @@
 message("Configuring libCGAL_ImageIO")
 
-find_package( ZLIB )
+include(FindAnyProject)
+find_anyproject( ZLIB )
 
 if(ZLIB_FOUND)
   get_dependency_version(ZLIB)
@@ -43,6 +44,8 @@ else()
   target_include_directories( CGAL_ImageIO INTERFACE ${CGAL_3RD_PARTY_LIBRARIES_DIRS})
 
 endif()
+
+set(EXPORT_TARGETS ${EXPORT_TARGETS} PARENT_SCOPE)
 
 message("libCGAL_ImageIO is configured")
 
