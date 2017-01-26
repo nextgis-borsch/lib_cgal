@@ -1,7 +1,7 @@
 message("Configuring libCGAL_ImageIO")
 
-include(FindAnyProject)
-find_anyproject( ZLIB )
+#include(FindAnyProject)
+#find_anyproject( ZLIB )
 
 if(ZLIB_FOUND)
   get_dependency_version(ZLIB)

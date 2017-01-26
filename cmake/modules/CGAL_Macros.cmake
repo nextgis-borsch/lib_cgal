@@ -159,7 +159,8 @@ if( NOT CGAL_MACROS_FILE_INCLUDED )
 
       set ( ${LIB}_VERSION "unknown" )
 
-      try_run( ${LIB}_RUN_RES
+      if(NOT CMAKE_CROSSCOMPILING) # TODO: detect version without try_run()
+        try_run( ${LIB}_RUN_RES
                ${LIB}_COMPILE_RES
                "${CMAKE_BINARY_DIR}"
                "${CGAL_INSTALLATION_PACKAGE_DIR}/config/support/print_${LIB}_version.cpp"
@@ -168,6 +169,7 @@ if( NOT CGAL_MACROS_FILE_INCLUDED )
                            "-DLINK_DIRECTORIES:STRING=${${PKG}_LIBRARIES_DIR};${${PKG}_DEPENDENCY_LIBRARIES_DIR}"
                OUTPUT_VARIABLE ${LIB}_OUTPUT
             )
+      endif()
 
       if ( ${LIB}_COMPILE_RES )
 

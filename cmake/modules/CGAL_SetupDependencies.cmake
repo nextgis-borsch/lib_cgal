@@ -1,4 +1,5 @@
 include(CGAL_Macros)
+include(FindAnyProject)
 
 message ( STATUS "External libraries supported: ${CGAL_SUPPORTING_3RD_PARTY_LIBRARIES}")
 
@@ -24,7 +25,7 @@ foreach (lib ${CGAL_SUPPORTING_3RD_PARTY_LIBRARIES})
       message (STATUS "Configuring library: ${lib} ...")
     endif()
   
-    find_package( ${lib} )
+    find_anyproject( ${lib} )
    
     if ( ${vlib}_FOUND ) 
       if ( CGAL_ENABLE_PRECONFIG )
