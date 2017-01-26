@@ -61,7 +61,7 @@ set(INSTALL_INC_FULL_DIR "${CMAKE_INSTALL_PREFIX}/${INSTALL_INC_DIR}")
 
 # TODO: add gmp and mpfr libraries to borsch and remove CGAL_DISABLE_GMP ON
 set(CGAL_DISABLE_GMP ON)
-#set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE) # TODO: may be set for ANDROID
+set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE) # TODO: may be set for ANDROID
 
 #--------------------------------------------------------------------------------------------------
 #
@@ -564,6 +564,10 @@ if ( CMAKE_COMPILER_IS_GNUCXX )
       uniquely_add_flags( CGAL_CXX_FLAGS "-mieee -mfp-rounding-mode=d" )
     endif()
     
+    if( NOT BUILD_SHARED_LIBS )
+      set( CMAKE_CXX_FLAGS "-fpic ${CMAKE_CXX_FLAGS}" )
+    endif()
+
   endif()
   
 endif()
