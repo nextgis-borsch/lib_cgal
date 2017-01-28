@@ -31,3 +31,8 @@
 # Debug files
 *.dSYM/
 *.su
+
+# Installer
+build/
+build-*
+inst/
