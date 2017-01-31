@@ -565,7 +565,7 @@ if ( CMAKE_COMPILER_IS_GNUCXX )
     endif()
     
     if( NOT BUILD_SHARED_LIBS )
-      set( CMAKE_CXX_FLAGS "-fpic ${CMAKE_CXX_FLAGS}" )
+      set( CMAKE_CXX_FLAGS "-fPIC ${CMAKE_CXX_FLAGS}" )
     endif()
 
   endif()
