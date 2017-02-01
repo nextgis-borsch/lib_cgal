@@ -86,12 +86,12 @@ function (collect_cgal_library LIBRARY_NAME ADDITIONAL_FILES)
 
   # if (NOT CGAL_HEADER_ONLY)
     install(TARGETS ${LIBRARY_NAME} EXPORT ${LIBRARY_NAME}Exports
-      RUNTIME DESTINATION "${CGAL_INSTALL_BIN_DIR}"
-      LIBRARY DESTINATION "${CGAL_INSTALL_LIB_DIR}"
-      ARCHIVE DESTINATION "${CGAL_INSTALL_LIB_DIR}")
+      RUNTIME DESTINATION "${CGAL_INSTALL_BIN_DIR}" COMPONENT libraries
+      LIBRARY DESTINATION "${CGAL_INSTALL_LIB_DIR}" COMPONENT libraries
+      ARCHIVE DESTINATION "${CGAL_INSTALL_LIB_DIR}" COMPONENT libraries)
     install(EXPORT ${LIBRARY_NAME}Exports
       DESTINATION "${CGAL_INSTALL_CMAKE_DIR}"
-      NAMESPACE CGAL::)
+      NAMESPACE CGAL:: COMPONENT libraries)
   # endif()
 
   # We have to call configure_file twice to force double expansion of variables.
@@ -99,7 +99,7 @@ function (collect_cgal_library LIBRARY_NAME ADDITIONAL_FILES)
     "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake" @ONLY)
   configure_file("${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake"
     "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake" @ONLY)
-  install(FILES "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake" DESTINATION ${CGAL_INSTALL_CMAKE_DIR})
+  install(FILES "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake" DESTINATION ${CGAL_INSTALL_CMAKE_DIR} COMPONENT libraries)
 
 endfunction()
 

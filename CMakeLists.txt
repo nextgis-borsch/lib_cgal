@@ -43,25 +43,42 @@ set(CMAKE_COLOR_MAKEFILE ON)
 # set path to additional CMake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
+if(OSX_FRAMEWORK AND (BUILD_SHARED_LIBS OR BUILD_STATIC_LIBS))
+  message(FATAL_ERROR "Only OSX_FRAMEWORK key or any or both BUILD_SHARED_LIBS
+                       and BUILD_STATIC_LIBS keys are permitted")
+endif()
+
 include(util)
 check_version(CGAL_MAJOR_VERSION CGAL_MINOR_VERSION)
 set(VERSION ${CGAL_MAJOR_VERSION}.${CGAL_MINOR_VERSION})
 report_version(${PROJECT_NAME} ${VERSION})
 
-# Use GNUInstallDirst to get canonical paths
-include(GNUInstallDirs)
+if(OSX_FRAMEWORK)
+    set(FRAMEWORK_VERSION "${CGAL_MAJOR_VERSION}")
+endif()
 
-set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
-set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
-set(INSTALL_INC_DIR ${CMAKE_INSTALL_INCLUDEDIR} CACHE INTERNAL "Installation directory for headers" FORCE)
-set(INSTALL_DOC_DIR ${CMAKE_INSTALL_DOCDIR} CACHE INTERNAL "Share directory for data" FORCE)
-set(INSTALL_MAN_DIR ${CMAKE_INSTALL_MANDIR} CACHE INTERNAL "Share directory for mans" FORCE)
-
-set(INSTALL_INC_FULL_DIR "${CMAKE_INSTALL_PREFIX}/${INSTALL_INC_DIR}")
+if(OSX_FRAMEWORK)
+  set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/Applications" CACHE INTERNAL "Installation directory for executables" FORCE)
+  set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/Library/Frameworks" CACHE INTERNAL "Installation directory for libraries" FORCE)
+  set(INSTALL_INC_DIR "${INSTALL_LIB_DIR}/${PROJECT_NAME}.framework/Headers" CACHE INTERNAL "Installation directory for headers" FORCE)
+  set(SKIP_INSTALL_HEADERS ON)
+  set(SKIP_INSTALL_EXECUTABLES ON)
+  set(SKIP_INSTALL_FILES ON)
+  set(SKIP_INSTALL_DOCS ON)
+  set(SKIP_INSTALL_EXPORT ON)
+  set(CMAKE_MACOSX_RPATH ON)
+else()
+  include(GNUInstallDirs)
+  set(INSTALL_BIN_DIR ${CMAKE_INSTALL_FULL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
+  set(INSTALL_LIB_DIR ${CMAKE_INSTALL_FULL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
+  set(INSTALL_INC_DIR ${CMAKE_INSTALL_FULL_INCLUDEDIR} CACHE INTERNAL "Installation directory for headers" FORCE)
+  set(INSTALL_DOC_DIR ${CMAKE_INSTALL_FULL_DOCDIR} CACHE INTERNAL "Installation directory for docs" FORCE)
+  set(INSTALL_MAN_DIR ${CMAKE_INSTALL_FULL_MANDIR} CACHE INTERNAL "Installation directory for  mans" FORCE)
+endif()
 
 # TODO: add gmp and mpfr libraries to borsch and remove CGAL_DISABLE_GMP ON
 set(CGAL_DISABLE_GMP ON)
-set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE) # TODO: may be set for ANDROID
+set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE)
 
 #--------------------------------------------------------------------------------------------------
 #
@@ -887,45 +904,53 @@ create_CGALconfig_files()
 
 # DESTINATION option is mandatory; skipping it breaks CPack!
 
-if(CGAL_INSTALL_DOC_DIR)
-  install(FILES AUTHORS CHANGES LICENSE LICENSE.FREE_USE LICENSE.GPL LICENSE.LGPL DESTINATION ${CGAL_INSTALL_DOC_DIR} )
+if(NOT SKIP_INSTALL_DOCS AND NOT SKIP_INSTALL_ALL)
+  if(CGAL_INSTALL_DOC_DIR)
+    install(FILES AUTHORS CHANGES LICENSE LICENSE.FREE_USE LICENSE.GPL LICENSE.LGPL DESTINATION ${CGAL_INSTALL_DOC_DIR} COMPONENT libraries)
+  endif()
 endif()
 
 #install all includes collected in trunk et cetera
 
+if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
+  foreach (dir ${CGAL_CONFIGURED_PACKAGES})
+    if (EXISTS ${dir}/include/CGAL) 
+      install(DIRECTORY ${dir}/include/CGAL              DESTINATION ${CGAL_INSTALL_INC_DIR} COMPONENT headers PATTERN ".svn" EXCLUDE)
+    endif()
+  endforeach()
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/include/CGAL     DESTINATION ${CGAL_INSTALL_INC_DIR} COMPONENT headers PATTERN ".svn" EXCLUDE)
+endif()
 
-foreach (dir ${CGAL_CONFIGURED_PACKAGES})
-  if (EXISTS ${dir}/include/CGAL) 
-    install(DIRECTORY ${dir}/include/CGAL              DESTINATION ${CGAL_INSTALL_INC_DIR} PATTERN ".svn" EXCLUDE)
-  endif()
-endforeach()
-install(DIRECTORY ${CMAKE_BINARY_DIR}/include/CGAL     DESTINATION ${CGAL_INSTALL_INC_DIR} PATTERN ".svn" EXCLUDE)
+if(NOT SKIP_INSTALL_EXECUTABLES AND NOT SKIP_INSTALL_ALL)
+  file(GLOB scripts "scripts/*")
+  list(SORT scripts)
+  list(REMOVE_ITEM scripts
+    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cgal_create_assertions.sh
+    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cgal_create_cmake_script_with_options)
+  install(PROGRAMS ${scripts} DESTINATION ${CGAL_INSTALL_BIN_DIR} COMPONENT libraries)
+endif()
 
-file(GLOB scripts "scripts/*")
-list(SORT scripts)
-list(REMOVE_ITEM scripts 
-  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cgal_create_assertions.sh 
-  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cgal_create_cmake_script_with_options)
-install(PROGRAMS ${scripts} DESTINATION ${CGAL_INSTALL_BIN_DIR})
-
-install(DIRECTORY ${CGAL_MODULES_REL_DIR}/                DESTINATION ${CGAL_INSTALL_CMAKE_DIR} )
-install(FILES     ${CGAL_MODULES_REL_DIR}/UseCGAL.cmake   DESTINATION ${CGAL_INSTALL_CMAKE_DIR} )
+install(DIRECTORY ${CGAL_MODULES_REL_DIR}/                DESTINATION ${CGAL_INSTALL_CMAKE_DIR} COMPONENT libraries)
+install(FILES     ${CGAL_MODULES_REL_DIR}/UseCGAL.cmake   DESTINATION ${CGAL_INSTALL_CMAKE_DIR} COMPONENT libraries)
 
 if ( GMP_IN_AUXILIARY )
-  install(DIRECTORY auxiliary/gmp/include/ DESTINATION ${CGAL_INSTALL_INC_DIR} )
-  install(DIRECTORY auxiliary/gmp/lib/     DESTINATION ${CGAL_INSTALL_LIB_DIR} )
+  if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
+    install(DIRECTORY auxiliary/gmp/include/ DESTINATION ${CGAL_INSTALL_INC_DIR} COMPONENT headers)
+  endif()
+  install(DIRECTORY auxiliary/gmp/lib/       DESTINATION ${CGAL_INSTALL_LIB_DIR} COMPONENT libraries)
 endif()
 
 if ( ZLIB_IN_AUXILIARY )
-  install(DIRECTORY auxiliary/zlib/include/ DESTINATION ${CGAL_INSTALL_INC_DIR} )
-  install(DIRECTORY auxiliary/zlib/lib/     DESTINATION ${CGAL_INSTALL_LIB_DIR} )
+  if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
+    install(DIRECTORY auxiliary/zlib/include/ DESTINATION ${CGAL_INSTALL_INC_DIR} COMPONENT headers)
+  endif()
+  install(DIRECTORY auxiliary/zlib/lib/       DESTINATION ${CGAL_INSTALL_LIB_DIR} COMPONENT libraries)
 endif()
 
+install(FILES ${CMAKE_BINARY_DIR}/config/CGALConfig.cmake DESTINATION ${CGAL_INSTALL_CMAKE_DIR} COMPONENT libraries)
 
-install(FILES ${CMAKE_BINARY_DIR}/config/CGALConfig.cmake DESTINATION ${CGAL_INSTALL_CMAKE_DIR} )
-
-if(CGAL_INSTALL_MAN_DIR)
-  install(FILES auxiliary/cgal_create_cmake_script.1 DESTINATION ${CGAL_INSTALL_MAN_DIR} )
+if(CGAL_INSTALL_MAN_DIR AND NOT SKIP_INSTALL_DOCS AND NOT SKIP_INSTALL_ALL)
+  install(FILES auxiliary/cgal_create_cmake_script.1 DESTINATION ${CGAL_INSTALL_MAN_DIR} COMPONENT libraries)
 endif()
 
 #--------------------------------------------------------------------------------------------------
@@ -1113,11 +1138,12 @@ endif()
 
 set(EXPORT_NAME ${PROJECT_NAME})
 
-if (REGISTER_PACKAGE)
+if(REGISTER_PACKAGE)
     export(TARGETS ${EXPORT_TARGETS} FILE ${EXPORT_NAME}-exports.cmake)
-    set(EXPORT_PACKAGE_NAME CGAL)
-    set(EXPORT_PACKAGE_NAME_UPPER ${EXPORT_PACKAGE_NAME})
-    set(EXPORT_PACKAGE_LIB_NAME ${PROJECT_NAME})
+
+    set(EXPORT_PACKAGE_NAME ${EXPORT_NAME})
+    string(TOUPPER ${EXPORT_PACKAGE_NAME} EXPORT_PACKAGE_NAME_UPPER)
+    set(EXPORT_PACKAGE_LIB_NAMES ${EXPORT_TARGETS})
 
     export(PACKAGE ${EXPORT_PACKAGE_NAME})
 
@@ -1125,8 +1151,7 @@ if (REGISTER_PACKAGE)
     configure_package_config_file(
         ${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
         ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_PACKAGE_NAME}Config.cmake
-        INSTALL_DESTINATION ${INSTALL_LIB_DIR}/cmake
-        PATH_VARS INSTALL_INC_DIR )
+        INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
     write_basic_package_version_file(
         ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_PACKAGE_NAME}ConfigVersion.cmake
         VERSION ${VERSION}
