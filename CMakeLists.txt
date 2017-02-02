@@ -76,7 +76,7 @@ else()
   set(INSTALL_MAN_DIR ${CMAKE_INSTALL_FULL_MANDIR} CACHE INTERNAL "Installation directory for  mans" FORCE)
 endif()
 
-# TODO: add gmp and mpfr libraries to borsch and remove CGAL_DISABLE_GMP ON
+# TODO: add gmp and mpfr libraries to borsch and remove CGAL_DISABLE_GMP ON 
 set(CGAL_DISABLE_GMP ON)
 set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE)
 
