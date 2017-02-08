@@ -35,9 +35,9 @@ if ( NOT CGAL_Boost_Setup )
   if (CGAL_requires_Boost_libs)
     # TODO: change to find_anyproject after full cmaked boost
     find_package( Boost 1.48 REQUIRED thread system )
-    #find_anyproject( Boost 1.48 REQUIRED COMPONENTS thread system )
+    #find_anyproject( Boost VERSION 1.48 REQUIRED COMPONENTS thread system )
   else()
-    find_anyproject( Boost 1.48 REQUIRED )
+    find_anyproject( Boost VERSION 1.48 REQUIRED )
   endif()
 
   if(Boost_FOUND)
