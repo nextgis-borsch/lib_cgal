@@ -21,8 +21,8 @@
 ################################################################################
 
 function(check_version major minor)
-
-    file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/CGAL/version.h VERSION_H_CONTENTS)
+    set(VERSION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/include/CGAL/version.h)
+    file(READ ${VERSION_FILE} VERSION_H_CONTENTS)
 
     string(REGEX MATCH "CGAL_VERSION_NR[ \t]+([0-9]+)"
       CGAL_VERSION ${VERSION_H_CONTENTS})
@@ -35,6 +35,9 @@ function(check_version major minor)
     set(${major} ${MAJOR_VERSION} PARENT_SCOPE)
     set(${minor} ${MINOR_VERSION} PARENT_SCOPE)
 
+    # Store version string in file for installer needs
+    file(TIMESTAMP ${VERSION_FILE} VERSION_DATETIME "%Y-%m-%d %H:%M:%S" UTC)
+    file(WRITE ${CMAKE_BINARY_DIR}/version.str "${MAJOR_VERSION}.${MINOR_VERSION}\n${VERSION_DATETIME}")
 endfunction(check_version)
 
 
@@ -43,10 +46,10 @@ function(report_version name ver)
     string(ASCII 27 Esc)
     set(BoldYellow  "${Esc}[1;33m")
     set(ColourReset "${Esc}[m")
-        
+
     message(STATUS "${BoldYellow}${name} version ${ver}${ColourReset}")
-    
-endfunction()  
+
+endfunction()
 
 
 # macro to find packages on the host OS

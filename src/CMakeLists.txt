@@ -45,10 +45,26 @@ function (collect_cgal_library LIBRARY_NAME ADDITIONAL_FILES)
   endif()
 
   if (NOT CGAL_HEADER_ONLY)
+    if(OSX_FRAMEWORK)
+      set(PUBLIC_HDRS ${CMAKE_SOURCE_DIR}/include/CGAL/version.h)
+      set(ADDITIONAL_FILES ${ADDITIONAL_FILES} ${PUBLIC_HDRS})
+    endif()
     add_library (${LIBRARY_NAME}
       ${CMAKE_CURRENT_BINARY_DIR}/all_files.cpp
       ${rc_file}
       ${ADDITIONAL_FILES})
+
+    if(OSX_FRAMEWORK)
+        set_target_properties(${LIB_NAME} PROPERTIES
+          FRAMEWORK TRUE
+          FRAMEWORK_VERSION ${FRAMEWORK_VERSION}
+          MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${VERSION}
+          MACOSX_FRAMEWORK_BUNDLE_VERSION ${VERSION}
+          MACOSX_FRAMEWORK_IDENTIFIER org.cgal.cgal
+          XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+          PUBLIC_HEADER "${PUBLIC_HDRS}"
+        )
+    endif()
     #  add_library (${LIBRARY_NAME} ${CGAL_LIBRARY_SOURCE_FILES} ${rc_file} ${ADDITIONAL_FILES}) # builing not creating temporary all_files.cpp
     if(CGAL_SOVERSION AND CGAL_SONAME_VERSION)
       set_target_properties(${LIBRARY_NAME} PROPERTIES
@@ -85,21 +101,27 @@ function (collect_cgal_library LIBRARY_NAME ADDITIONAL_FILES)
   endif()
 
   # if (NOT CGAL_HEADER_ONLY)
+  if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     install(TARGETS ${LIBRARY_NAME} EXPORT ${LIBRARY_NAME}Exports
-      RUNTIME DESTINATION "${CGAL_INSTALL_BIN_DIR}" COMPONENT libraries
-      LIBRARY DESTINATION "${CGAL_INSTALL_LIB_DIR}" COMPONENT libraries
-      ARCHIVE DESTINATION "${CGAL_INSTALL_LIB_DIR}" COMPONENT libraries)
+      RUNTIME DESTINATION ${CGAL_INSTALL_LIB_DIR} COMPONENT libraries
+      LIBRARY DESTINATION ${CGAL_INSTALL_LIB_DIR} COMPONENT libraries
+      ARCHIVE DESTINATION ${CGAL_INSTALL_LIB_DIR} COMPONENT libraries
+      FRAMEWORK DESTINATION ${CGAL_INSTALL_LIB_DIR})
+  endif()
+  if(NOT SKIP_INSTALL_EXPORT AND NOT SKIP_INSTALL_ALL)
     install(EXPORT ${LIBRARY_NAME}Exports
       DESTINATION "${CGAL_INSTALL_CMAKE_DIR}"
       NAMESPACE CGAL:: COMPONENT libraries)
-  # endif()
+  endif()
 
   # We have to call configure_file twice to force double expansion of variables.
   configure_file("${CGAL_MODULES_DIR}/CGALLibConfig.cmake.in"
     "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake" @ONLY)
   configure_file("${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake"
     "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake" @ONLY)
-  install(FILES "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake" DESTINATION ${CGAL_INSTALL_CMAKE_DIR} COMPONENT libraries)
+  if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL)
+      install(FILES "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}LibConfig.cmake" DESTINATION ${CGAL_INSTALL_CMAKE_DIR} COMPONENT libraries)
+  endif()
 
 endfunction()
 
