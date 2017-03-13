@@ -46,7 +46,7 @@ function (collect_cgal_library LIBRARY_NAME ADDITIONAL_FILES)
 
   if (NOT CGAL_HEADER_ONLY)
     if(OSX_FRAMEWORK)
-      set(PUBLIC_HDRS ${CMAKE_SOURCE_DIR}/include/CGAL/version.h)
+      set(PUBLIC_HDRS ${CMAKE_SOURCE_DIR}/VERSION)
       set(ADDITIONAL_FILES ${ADDITIONAL_FILES} ${PUBLIC_HDRS})
     endif()
     add_library (${LIBRARY_NAME}
@@ -55,12 +55,12 @@ function (collect_cgal_library LIBRARY_NAME ADDITIONAL_FILES)
       ${ADDITIONAL_FILES})
 
     if(OSX_FRAMEWORK)
-        set_target_properties(${LIB_NAME} PROPERTIES
+        set_target_properties(${LIBRARY_NAME} PROPERTIES
           FRAMEWORK TRUE
           FRAMEWORK_VERSION ${FRAMEWORK_VERSION}
           MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${VERSION}
           MACOSX_FRAMEWORK_BUNDLE_VERSION ${VERSION}
-          MACOSX_FRAMEWORK_IDENTIFIER org.cgal.cgal
+          MACOSX_FRAMEWORK_IDENTIFIER org.CGAL.${LIBRARY_NAME}
           XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
           PUBLIC_HEADER "${PUBLIC_HDRS}"
         )

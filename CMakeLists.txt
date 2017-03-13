@@ -57,7 +57,7 @@ if(OSX_FRAMEWORK)
   set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/Applications" CACHE INTERNAL "Installation directory for executables" FORCE)
   set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/Library/Frameworks" CACHE INTERNAL "Installation directory for libraries" FORCE)
   set(INSTALL_INC_DIR "${INSTALL_LIB_DIR}/${PROJECT_NAME}.framework/Headers" CACHE INTERNAL "Installation directory for headers" FORCE)
-  set(SKIP_INSTALL_HEADERS OFF)
+  set(SKIP_INSTALL_HEADERS ON)
   set(SKIP_INSTALL_EXECUTABLES ON)
   set(SKIP_INSTALL_FILES ON)
   set(SKIP_INSTALL_DOCS ON)
@@ -945,7 +945,9 @@ if ( ZLIB_IN_AUXILIARY )
   install(DIRECTORY auxiliary/zlib/lib/       DESTINATION ${CGAL_INSTALL_LIB_DIR} COMPONENT libraries)
 endif()
 
-install(FILES ${CMAKE_BINARY_DIR}/config/CGALConfig.cmake DESTINATION ${CGAL_INSTALL_CMAKE_DIR} COMPONENT libraries)
+if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL)
+    install(FILES ${CMAKE_BINARY_DIR}/config/CGALConfig.cmake DESTINATION ${CGAL_INSTALL_CMAKE_DIR} COMPONENT libraries)
+endif()
 
 if(CGAL_INSTALL_MAN_DIR AND NOT SKIP_INSTALL_DOCS AND NOT SKIP_INSTALL_ALL)
   install(FILES auxiliary/cgal_create_cmake_script.1 DESTINATION ${CGAL_INSTALL_MAN_DIR} COMPONENT libraries)
@@ -960,12 +962,14 @@ endif()
 # Installing FindCGAL into cmake itself is implemented as a custom target
 # because it requires superuser privileges
 
+if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL)
 if ( NOT "${CMAKE_ROOT}" STREQUAL "" )
   if ( EXISTS ${CMAKE_ROOT}/Modules )
     add_custom_target( install_FindCGAL
                       COMMAND ${CMAKE_COMMAND} -E copy ${CGAL_MODULES_DIR}/FindCGAL.cmake ${CMAKE_ROOT}/Modules
                     )
   endif()
+endif()
 endif()
 
 #--------------------------------------------------------------------------------------------------
@@ -1141,7 +1145,7 @@ if(REGISTER_PACKAGE)
 
     set(EXPORT_PACKAGE_NAME ${EXPORT_NAME})
     string(TOUPPER ${EXPORT_PACKAGE_NAME} EXPORT_PACKAGE_NAME_UPPER)
-    set(EXPORT_PACKAGE_LIB_NAMES ${EXPORT_TARGETS})
+    set(EXPORT_PACKAGE_LIB_NAME ${PROJECT_NAME}) # skip all targets except CGAL as in PackageConfig.cmake.in is line: if(NOT TARGET @EXPORT_PACKAGE_LIB_NAME@) and EXPORT_PACKAGE_LIB_NAME should be the one target
 
     export(PACKAGE ${EXPORT_PACKAGE_NAME})
 
